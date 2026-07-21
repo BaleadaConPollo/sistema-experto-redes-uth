@@ -1,0 +1,145 @@
+{
+  "_comentario": "Base de conocimiento del Sistema Experto de Diagnóstico de Red. Cualquier técnico puede editar preguntas, soluciones, severidad o SLA aquí SIN tocar motor_inferencia.py ni app.py.",
+
+  "arboles": {
+    "diagnostico_local": "check_gateway",
+    "diagnostico_remoto": "check_ping_remoto"
+  },
+
+  "nodos": {
+
+    "check_gateway": {
+      "tipo": "chequeo_booleano",
+      "regla": "R1/R2",
+      "pregunta": "¿Ping exitoso a gateway?",
+      "sensor": "ping",
+      "parametros": ["{gateway}"],
+      "si": "check_wan",
+      "no": "resultado_R1"
+    },
+
+    "check_wan": {
+      "tipo": "chequeo_booleano",
+      "regla": "R2",
+      "pregunta": "¿Ping exitoso a IP pública (8.8.8.8)?",
+      "sensor": "ping",
+      "parametros": ["8.8.8.8"],
+      "si": "check_dns",
+      "no": "resultado_R2"
+    },
+
+    "check_dns": {
+      "tipo": "chequeo_booleano",
+      "regla": "R3",
+      "pregunta": "¿Resuelve dominios (DNS)?",
+      "sensor": "ping",
+      "parametros": ["google.com"],
+      "si": "check_puerto",
+      "no": "resultado_R3"
+    },
+
+    "check_ping_remoto": {
+      "tipo": "chequeo_booleano",
+      "regla": "R0",
+      "pregunta": "¿El host remoto responde al ping?",
+      "sensor": "ping",
+      "parametros": ["{host}"],
+      "si": "check_puerto",
+      "no": "resultado_R0"
+    },
+
+    "check_puerto": {
+      "tipo": "chequeo_multivalor",
+      "regla": "R4/R5/R6",
+      "pregunta": "¿Estado del servicio en el puerto probado?",
+      "sensor": "puerto",
+      "parametros": ["{host}", "{puerto}"],
+      "ramas": {
+        "activo_abierto": "resultado_R6",
+        "inactivo": "resultado_R4",
+        "bloqueado": "resultado_R5",
+        "host_invalido": "resultado_HOST_INVALIDO"
+      }
+    },
+
+    "resultado_R1": {
+      "tipo": "resultado",
+      "regla": "R1",
+      "diagnostico": "Fallo_Físico_o_DHCP",
+      "titulo": "Fallo físico / DHCP",
+      "severidad": "Crítico",
+      "sla_horas": 1,
+      "solucion": "Revisa que el cable de red esté bien conectado o que el equipo esté asociado al Wi-Fi correcto. Solicita una nueva IP: en Linux 'sudo dhclient -r && sudo dhclient', en Windows 'ipconfig /release' seguido de 'ipconfig /renew'."
+    },
+
+    "resultado_R2": {
+      "tipo": "resultado",
+      "regla": "R2",
+      "diagnostico": "Fallo_Enlace_WAN",
+      "titulo": "Fallo de enlace WAN",
+      "severidad": "Crítico",
+      "sla_horas": 2,
+      "solucion": "La red local funciona pero no hay salida a Internet. Reinicia el módem/router (espera 10 segundos) o contacta al proveedor de servicios (ISP) para confirmar si hay una intermitencia en la zona."
+    },
+
+    "resultado_R3": {
+      "tipo": "resultado",
+      "regla": "R3",
+      "diagnostico": "Fallo_DNS",
+      "titulo": "Fallo de DNS",
+      "severidad": "Alto",
+      "sla_horas": 4,
+      "solucion": "Hay salida a Internet por IP pero no se resuelven nombres de dominio. En Linux edita /etc/resolv.conf y agrega 'nameserver 8.8.8.8'. En Windows cambia el DNS preferido del adaptador a 8.8.8.8 y ejecuta 'ipconfig /flushdns'."
+    },
+
+    "resultado_R4": {
+      "tipo": "resultado",
+      "regla": "R4",
+      "diagnostico": "Servicio_Caído",
+      "titulo": "Servicio caído",
+      "severidad": "Alto",
+      "sla_horas": 4,
+      "solucion": "Nadie escucha en el puerto probado (conexión rechazada). Inicia el servicio en el servidor destino, por ejemplo 'sudo systemctl start sshd' o 'sudo systemctl start httpd', y confirma que el proceso quedó activo con 'systemctl status'."
+    },
+
+    "resultado_R5": {
+      "tipo": "resultado",
+      "regla": "R5",
+      "diagnostico": "Bloqueo_Firewall",
+      "titulo": "Bloqueo de firewall",
+      "severidad": "Medio",
+      "sla_horas": 8,
+      "solucion": "El puerto no respondió (tiempo de espera agotado), comportamiento típico de un firewall descartando el paquete. Habilita el puerto, por ejemplo en Rocky/RedHat: 'sudo firewall-cmd --add-port=<puerto>/tcp --permanent && sudo firewall-cmd --reload'."
+    },
+
+    "resultado_R6": {
+      "tipo": "resultado",
+      "regla": "R6",
+      "diagnostico": "Conexión_OK",
+      "titulo": "Conexión funcionando correctamente",
+      "severidad": "Informativo",
+      "sla_horas": null,
+      "solucion": "No se detectaron fallas en ningún nivel evaluado. No se requiere ninguna acción."
+    },
+
+    "resultado_R0": {
+      "tipo": "resultado",
+      "regla": "R0",
+      "diagnostico": "Host_No_Responde",
+      "titulo": "Host remoto sin respuesta",
+      "severidad": "Crítico",
+      "sla_horas": 1,
+      "solucion": "El equipo remoto no respondió al ping. Verifica que esté encendido y conectado a la red, y que no exista una regla de firewall bloqueando ICMP (ping) hacia ese host."
+    },
+
+    "resultado_HOST_INVALIDO": {
+      "tipo": "resultado",
+      "regla": "—",
+      "diagnostico": "Host_Invalido",
+      "titulo": "Host o dominio inválido",
+      "severidad": "Informativo",
+      "sla_horas": null,
+      "solucion": "Verifica que el nombre de host, dominio o dirección IP ingresada sea correcta y esté bien escrita."
+    }
+  }
+}
