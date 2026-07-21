@@ -1,0 +1,37 @@
+name: Pruebas del Sistema Experto
+
+# Corre automáticamente en cada push o pull request hacia main,
+# así el catedrático (o cualquiera) ve el historial de "checks" pasando
+# sin tener que correr nada manualmente.
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  pruebas:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Correr pruebas del motor de inferencia (pytest)
+        run: pytest test_motor.py -v
+
+      - name: Verificar que la base de conocimiento es JSON válido
+        run: python -c "import json; json.load(open('reglas_conocimiento.json', encoding='utf-8')); print('reglas_conocimiento.json es válido')"
+
+      - name: Verificar que la API REST importa sin errores
+        run: python -c "import api; print('api.py importa correctamente:', api.app.title)"

@@ -1,0 +1,6 @@
+{
+  "_comentario": "Credenciales de acceso al panel. La contraseña NUNCA se guarda en texto plano, solo su hash SHA-256. Para cambiarla, corre: python -c \"import hashlib; print(hashlib.sha256('TU_NUEVA_CLAVE'.encode()).hexdigest())\" y pega el resultado en 'password_sha256'.",
+  "usuario": "admin",
+  "password_sha256": "b9d16ae60f78f80a4c710bc8f7fa39788d23b6fec1c83b1ff83b606694c2f2ba",
+  "_password_por_defecto_es": "uth2026 (cámbiala antes de la demo o de compartir el proyecto)"
+}

@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+bitacora_diagnosticos.csv
+*.pdf
+.git/
+.gitignore
+README.md
+venv/
+.venv/
